@@ -7,6 +7,8 @@
 const gameTitle = "Hangman from Scratch!"
 const gameVersion = 1.0
 const gameDescription = "This is a traditional Hangman game, created in 2 hours"
+var gamesWon = 0
+var gamesLost = 0
 
 // the guys who worked on this
 const createdBy = [ 
@@ -86,9 +88,12 @@ function resetGame() {
     hangmanState = 0
     $( ".row.first-row").empty();
     $( ".row.btn-toolbar").empty();
-    $( ".row.chatter").empty();
+    $( ".row.guesses").empty();
     $( ".row.gallows").empty();
-    $( ".row.gallows").append(`<canvas id="gameCanvas" height="500" width="500"></canvas>`);
+    $( ".row.chatter").empty();
+    $( ".row.solution").empty();
+
+    $( ".row.gallows").append(`<canvas id="gameCanvas"></canvas>`);
     // game canvas where gallows and hangman will be drawn
     canvas = document.getElementById("gameCanvas");
     context = canvas.getContext("2d");
@@ -121,7 +126,7 @@ $(document).on('click', ".btn.btn-success.btn-primary.btn-sm", function() {
     var myClasses = this.classList;
     var chosenLetter = myClasses[4];
     console.log("Player clicked " + chosenLetter)
-    $( ".row.chatter").append(chosenLetter)
+    $( ".row.guesses").append(chosenLetter)
     checkChosen(chosenLetter);
 })
 
@@ -131,7 +136,7 @@ $(document).keypress(function(e) {
     console.log("You pressed the \"" + keycode + "\"")
     for (let i = 0; i < letterList.length; i++) {
         if (parseInt(letterList[i].id) === keycode) {
-            $( ".row.chatter").append(letterList[i].letter)
+            $( ".row.guesses").append(letterList[i].letter)
             checkChosen(letterList[i].letter);
         }
     }
@@ -146,9 +151,15 @@ function checkChosen(letter) {
             if (solution.charAt(i) == letter) {
                 hiddenWord = replaceChar(hiddenWord, i, letter)
             } 
-        }
+        } if (hiddenWord == solution) {
+            gamesWon++
+            $(".row.chatter").empty()
+            $(".row.chatter").append(`<p>You Won! The answer was: ${solution}. Try again!</p>`)
+            $(".row.game-count").empty()
+            $(".row.game-count").append(`<p>Wins: ${gamesWon} Losses: ${gamesLost}</p>`)
+            setTimeout(function() { resetGame(); }, 2000);
+        } 
     } else {
-        console.log("Not found!")
         wrongAnswer();
     }
     $(".row.solution").empty()
@@ -163,6 +174,14 @@ function replaceChar(str,index,chr) {
 
 function wrongAnswer() {
     drawSequence[ hangmanState++ ]();
+        if (hangmanState >= 7) {
+            gamesLost++
+            $(".row.chatter").empty()
+            $(".row.chatter").append(`<p>You Lost! The answer was: ${solution}. Try again!</p>`)
+            $(".row.game-count").empty()
+            $(".row.game-count").append(`<p>Wins: ${gamesWon} Losses: ${gamesLost}</p>`)
+            setTimeout(function() { resetGame(); }, 2000);
+        }
 }
 
 // Drawing the hangman
